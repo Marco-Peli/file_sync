@@ -15,9 +15,8 @@ class ServerRequestsIn:
             request = conn.recv(1024)
             if not request:
                 break
-            response = self.server_req_handler.parse_req(requests)
-            json_object = json.dumps(response, indent=None)
-            conn.send(json_object.encode())
+            parsed_req = json.load(request)
+            self.file_manager.add_incoming_req(parsed_req)
 
     def start(self):
         start_new_thread(self.accept_incoming_conns_tcp, ())

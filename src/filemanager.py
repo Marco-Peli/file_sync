@@ -15,6 +15,10 @@ def calc_sha256_chk(data):
     return hex_hash
 
 
+def delete_entry_db(file_name, db_files_list):
+    db_files_list[:] = list(filter(lambda i: i['file_name'] != file_name, db_files_list))
+
+
 class FileManager:
     def __init__(self, server_req_out):
         self.sync_folder_path = 'files_sync'
@@ -42,8 +46,9 @@ class FileManager:
         database_obj = {
             'files': data
         }
+        self.files_database = database_obj
         with open(self.files_chk_db, 'w') as db_file:
-            json_object = json.dumps(data, indent=2)
+            json_object = json.dumps(database_obj, indent=2)
             db_file.write(json_object)
 
     def read_db_file(self):
@@ -61,10 +66,11 @@ class FileManager:
             update_db_file = False
 
             for file in files_list:
-                file_name = file['file_name']
-                file_path = self.sync_folder_path + os.sep + file_name
-                file_chk = calc_sha256_chk(self.read_file(file_name))
                 try:
+                    file_name = file['file_name']
+                    file_path = self.sync_folder_path + os.sep + file_name
+                    file_bin = self.read_file(file_name)
+                    file_chk = calc_sha256_chk(file_bin)
                     self.find_file_ind_db(file_name) #check if hew file added
                     self.check_db_chk(file_name) #check if file modified by content
                 except FileNotFoundInDb:
@@ -73,25 +79,32 @@ class FileManager:
                         'file_name': file_name,
                         'action': 'new_file',
                         'file_chk': file_chk,
-                        'data': file
+                        'data': file_bin
                     }
 
-                    new_file_data = {
+                    db_new_file_data = {
                         'file_name': file_name,
                         'file_chk': file_chk
                     }
                     update_db_file = True
-                    db_files_list.append(new_file_data)
+                    db_files_list.append(db_new_file_data)
                     modifies.append(action)
                 except ChkChanged:
                     print("File " + file_name + " has been modified, updating")
-                    file = self.read_file(file_name)
                     action = {
                         'file_name': file_name,
                         'action': 'update',
-                        'data': self.read_file(file_name)
+                        'data': file_bin
                     }
+                    update_db_file = True
                     modifies.append(action)
+                # except IOError:
+                #     action = {
+                #         'file_name': file_name,
+                #         'action': 'delete',
+                #     }
+                #     db_files_list[:] = list(filter(lambda i: i['file_name'] != file_name, db_files_list))
+                #     modifies.append(action)
 
             if self.check_files_in_folder(db_files_list, modifies): #check if file was deleted
                 update_db_file = True
@@ -102,10 +115,24 @@ class FileManager:
             if update_db_file:
                 self.update_db(db_files_list)
 
+            self.add_requests_out(modifies)
+
             time.sleep(3)
 
-    def parse_incoming_req(self):
-        pass
+    def add_requests_out(self, modifies):
+        if len(modifies) > 0:
+            self.server_req_out.add_requests(modifies)
+
+    def parse_incoming_req(self, db_files_list):
+        for request in self.incoming_actions:
+            action = request['action']
+            if action == 'delete':
+                file_name = request['file_name']
+                file_path = self.sync_folder_path + os.sep + file_name
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                db_files_list[:] = list(filter(lambda i: i['file_name'] != file_name, db_files_list))
+            pass
 
     def check_files_in_folder(self, db_files_list, modifies):
         update_db_file = False
@@ -115,6 +142,7 @@ class FileManager:
             file_name = file['file_name']
             file_path = self.sync_folder_path + os.sep + file_name
             if not os.path.isfile(file_path):
+                print("File " + file_name + " deleted, synchronizing clients")
                 update_db_file = True
                 action = {
                     'file_name': file_name,
