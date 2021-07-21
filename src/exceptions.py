@@ -1,14 +1,18 @@
 class CustomException(Exception):
-    def __init__(self, msg, code):
+    def __init__(self, msg):
         super().__init__(msg)
         self.msg = msg
-        self.code = code
 
     def __str__(self):
         return self.msg
 
 
 class FileNotFoundInDb(CustomException):
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
+class FileNotFoundInFolder(CustomException):
     def __init__(self, msg):
         super().__init__(msg)
 
