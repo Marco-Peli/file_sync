@@ -6,11 +6,11 @@ import socketio
 
 class ServerCom:
 
-    def __init__(self, file_manager):
+    def __init__(self, controller):
         self.requests_out = []
         self.host = '192.168.1.89'
         self.port = 3005
-        self.file_manager = file_manager
+        self.controller = controller
         self.sio = socketio.Client()
 
         @self.sio.event
@@ -18,8 +18,9 @@ class ServerCom:
             print('I received a message!')
 
         @self.sio.on('action')
-        def on_message(data):
-            print('I received a request!')
+        def on_message(actions):
+            print('Actions received from remote host')
+            self.controller.file_manager.add_incoming_req(actions)
 
         @self.sio.on('currentTime')
         def on_message(data):
