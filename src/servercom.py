@@ -1,5 +1,5 @@
 import json
-import socket
+import time
 from _thread import *
 import socketio
 
@@ -8,7 +8,7 @@ class ServerCom:
 
     def __init__(self, file_manager):
         self.requests_out = []
-        self.host = 'http://localhost'
+        self.host = 'localhost'
         self.port = 3005
         self.file_manager = file_manager
         self.sio = socketio.Client()
@@ -25,8 +25,26 @@ class ServerCom:
         def on_message(data):
             print(data)
 
+        @self.sio.event
+        def connect_error(data):
+            print("The connection failed!")
+
     def add_requests(self, actions):
         self.requests_out.append(actions)
 
     def connect(self):
-        self.sio.connect(self.host+':'+str(self.port))
+        try:
+            self.sio.connect('http://' + self.host+':'+str(self.port))
+        except socketio.exceptions.ConnectionError:
+            print("Unable to connect to server")
+
+    def run(self):
+        start_new_thread(self.send_to_server, ())
+
+    def send_to_server(self):
+        while True:
+            if len(self.requests_out) > 0:
+                json_object = json.dumps(self.requests_out, indent=None)
+                self.sio.emit('action', json_object.encode())
+                self.requests_out = []
+            time.sleep(5)

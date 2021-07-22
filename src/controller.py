@@ -11,6 +11,7 @@ class Controller:
     def run_app(self):
         self.file_manager.start_polling_scan()
         self.server_com.connect()
+        self.server_com.run()
 
         while True:
             pass
