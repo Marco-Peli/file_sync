@@ -71,7 +71,7 @@ class FileManager:
                     file_path = self.sync_folder_path + os.sep + file_name
                     file_bin = self.read_file(file_name)
                     file_chk = calc_sha256_chk(file_bin)
-                    self.find_file_ind_db(file_name) #check if hew file added
+                    self.find_file_in_db(file_name) #check if hew file added
                     self.check_db_chk(file_name) #check if file modified by content
                 except FileNotFoundInDb:
                     print("New file found, synchronizing new " + file_name)
@@ -135,17 +135,23 @@ class FileManager:
                             os.remove(file_path)
                         db_files_list[:] = list(filter(lambda i: i['file_name'] != file_name, db_files_list))
                         update_db = True
-                    elif action == 'update' or action == 'new_file':
+                    elif action['action'] == 'update' or action['action'] == 'new_file':
                         file_name = action['file_name']
                         file_chk = action['file_chk']
-                        db_new_file_data = {
-                            'file_name': file_name,
-                            'file_chk': file_chk
-                        }
-                        file_path = self.sync_folder_path + os.sep + file_name
-                        if os.path.isfile(file_path):
-                            os.remove(file_path)
+                        data = action['data']
                         update_db = True
+                        try:
+                            self.find_file_in_db(file_name)
+                            self.update_db_entry(file_name, file_chk)
+                        except FileNotFoundInDb:
+                            print("New file received from remote, name: " + file_name)
+                            db_new_file_data = {
+                                'file_name': file_name,
+                                'file_chk': file_chk
+                            }
+                            db_files_list.append(db_new_file_data)
+                        self.save_raw_to_file(data, file_name)
+
         return update_db
 
     def check_files_in_folder(self, db_files_list, modifies):
@@ -156,7 +162,7 @@ class FileManager:
             file_name = file['file_name']
             file_path = self.sync_folder_path + os.sep + file_name
             if not os.path.isfile(file_path):
-                print("File " + file_name + " deleted, synchronizing clients")
+                print("File " + file_name + " deleted, remote synchronizing clients")
                 update_db_file = True
                 action = {
                     'file_name': file_name,
@@ -167,6 +173,13 @@ class FileManager:
 
         return update_db_file
 
+    def update_db_entry(self, file_name_update, file_chk_update):
+        db_files_list = self.files_database['files']
+        for entry in db_files_list:
+            if entry['file_name'] == file_name_update:
+                entry['file_name'] = file_name_update
+                entry['file_chk'] = file_chk_update
+
     def check_db_chk(self, file_name):
         db_files_list = self.files_database['files']
         file_chk = calc_sha256_chk(self.read_file(file_name))
@@ -176,7 +189,7 @@ class FileManager:
                     raise ChkChanged("File chk changed")
         return True
 
-    def find_file_ind_db(self, file_name):
+    def find_file_in_db(self, file_name):
         db_files_list = self.files_database['files']
 
         for file in db_files_list:

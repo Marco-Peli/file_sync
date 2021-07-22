@@ -49,4 +49,4 @@ class ServerCom:
                 json_object = json.dumps(self.requests_out, indent=None)
                 self.sio.emit('action', json_object.encode())
                 self.requests_out = []
-            time.sleep(5)
+            time.sleep(2)
