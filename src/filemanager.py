@@ -98,13 +98,13 @@ class FileManager:
                     }
                     update_db_file = True
                     modifies.append(action)
-                # except IOError:
-                #     action = {
-                #         'file_name': file_name,
-                #         'action': 'delete',
-                #     }
-                #     db_files_list[:] = list(filter(lambda i: i['file_name'] != file_name, db_files_list))
-                #     modifies.append(action)
+                except IOError:
+                    action = {
+                        'file_name': file_name,
+                        'action': 'delete',
+                    }
+                    db_files_list[:] = list(filter(lambda i: i['file_name'] != file_name, db_files_list))
+                    modifies.append(action)
 
             if self.check_files_in_folder(db_files_list, modifies): #check if file was deleted
                 update_db_file = True
@@ -201,5 +201,10 @@ class FileManager:
             }
 
             files_list.append(list_obj)
-
         return files_list
+
+    def save_raw_to_file(self, raw_data, file_name):
+        file_path = self.sync_folder_path + os.sep + file_name
+        arr = bytearray(raw_data)
+        with open(file_path, 'wb') as f:
+            f.write(arr)
