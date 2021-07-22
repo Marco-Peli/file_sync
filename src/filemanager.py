@@ -20,13 +20,13 @@ def delete_entry_db(file_name, db_files_list):
 
 
 class FileManager:
-    def __init__(self, server_req_out):
+    def __init__(self, controller):
         self.sync_folder_path = 'files_sync'
         self.files_chk_db = 'files_chk_db.json'
         self.create_files_db()
         self.files_database = self.read_db_file()
         self.incoming_actions = []
-        self.server_req_out = server_req_out
+        self.controller = controller
 
     def read_file(self, file_name):
         file_path = self.sync_folder_path + os.sep + file_name
@@ -109,7 +109,7 @@ class FileManager:
             if self.check_files_in_folder(db_files_list, modifies): #check if file was deleted
                 update_db_file = True
 
-            if self.parse_incoming_req():
+            if self.parse_incoming_req(db_files_list):
                 update_db_file = True
 
             if update_db_file:
@@ -121,9 +121,10 @@ class FileManager:
 
     def add_requests_out(self, modifies):
         if len(modifies) > 0:
-            self.server_req_out.add_requests(modifies)
+            self.controller.server_com.add_requests(modifies)
 
     def parse_incoming_req(self, db_files_list):
+        update_db = False
         for request in self.incoming_actions:
             action = request['action']
             if action == 'delete':
@@ -132,7 +133,14 @@ class FileManager:
                 if os.path.isfile(file_path):
                     os.remove(file_path)
                 db_files_list[:] = list(filter(lambda i: i['file_name'] != file_name, db_files_list))
-            pass
+                update_db = True
+            # elif action == 'update' or action == 'new_file':
+            #
+            #     db_new_file_data = {
+            #         'file_name': file_name,
+            #         'file_chk': request['file_chk']
+            #     }
+        return update_db
 
     def check_files_in_folder(self, db_files_list, modifies):
         update_db_file = False
