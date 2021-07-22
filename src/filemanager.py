@@ -125,21 +125,27 @@ class FileManager:
 
     def parse_incoming_req(self, db_files_list):
         update_db = False
-        for request in self.incoming_actions:
-            action = request['action']
-            if action == 'delete':
-                file_name = request['file_name']
-                file_path = self.sync_folder_path + os.sep + file_name
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-                db_files_list[:] = list(filter(lambda i: i['file_name'] != file_name, db_files_list))
-                update_db = True
-            # elif action == 'update' or action == 'new_file':
-            #
-            #     db_new_file_data = {
-            #         'file_name': file_name,
-            #         'file_chk': request['file_chk']
-            #     }
+        for action_lists in self.incoming_actions:
+            for action_list in action_lists:
+                for action in action_list:
+                    if action['action'] == 'delete':
+                        file_name = action['file_name']
+                        file_path = self.sync_folder_path + os.sep + file_name
+                        if os.path.isfile(file_path):
+                            os.remove(file_path)
+                        db_files_list[:] = list(filter(lambda i: i['file_name'] != file_name, db_files_list))
+                        update_db = True
+                    elif action == 'update' or action == 'new_file':
+                        file_name = action['file_name']
+                        file_chk = action['file_chk']
+                        db_new_file_data = {
+                            'file_name': file_name,
+                            'file_chk': file_chk
+                        }
+                        file_path = self.sync_folder_path + os.sep + file_name
+                        if os.path.isfile(file_path):
+                            os.remove(file_path)
+                        update_db = True
         return update_db
 
     def check_files_in_folder(self, db_files_list, modifies):

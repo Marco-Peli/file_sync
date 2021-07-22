@@ -20,7 +20,8 @@ class ServerCom:
         @self.sio.on('action')
         def on_message(actions):
             print('Actions received from remote host')
-            self.controller.file_manager.add_incoming_req(actions)
+            json_action = json.loads(actions)
+            self.controller.file_manager.add_incoming_req(json_action)
 
         @self.sio.on('currentTime')
         def on_message(data):
