@@ -8,7 +8,7 @@ class ServerCom:
 
     def __init__(self, file_manager):
         self.requests_out = []
-        self.host = 'localhost'
+        self.host = '192.168.1.89'
         self.port = 3005
         self.file_manager = file_manager
         self.sio = socketio.Client()
@@ -27,7 +27,7 @@ class ServerCom:
 
         @self.sio.event
         def connect_error(data):
-            print("The connection failed!")
+            pass
 
     def add_requests(self, actions):
         self.requests_out.append(actions)

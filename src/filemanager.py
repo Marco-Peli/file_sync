@@ -79,7 +79,7 @@ class FileManager:
                         'file_name': file_name,
                         'action': 'new_file',
                         'file_chk': file_chk,
-                        'data': file_bin
+                        'data': list(file_bin)
                     }
 
                     db_new_file_data = {
