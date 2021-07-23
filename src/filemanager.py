@@ -151,7 +151,7 @@ class FileManager:
                             }
                             db_files_list.append(db_new_file_data)
                         self.save_raw_to_file(data, file_name)
-
+        self.incoming_actions = []
         return update_db
 
     def check_files_in_folder(self, db_files_list, modifies):
