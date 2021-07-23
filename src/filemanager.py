@@ -23,10 +23,15 @@ class FileManager:
     def __init__(self, controller):
         self.sync_folder_path = 'files_sync'
         self.files_chk_db = 'files_chk_db.json'
+        self.create_files_sync_folder()
         self.create_files_db()
         self.files_database = self.read_db_file()
         self.incoming_actions = []
         self.controller = controller
+
+    def create_files_sync_folder(self):
+        if not os.path.isdir(self.sync_folder_path):
+            os.makedirs(self.sync_folder_path)
 
     def read_file(self, file_name):
         file_path = self.sync_folder_path + os.sep + file_name
