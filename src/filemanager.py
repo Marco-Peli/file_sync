@@ -99,8 +99,10 @@ class FileManager:
                     action = {
                         'file_name': file_name,
                         'action': 'update',
-                        'data': list(file_bin)
+                        'data': list(file_bin),
+                        'file_chk': file_chk
                     }
+                    self.update_db_entry(file_name, file_chk)
                     update_db_file = True
                     modifies.append(action)
                 except IOError:
