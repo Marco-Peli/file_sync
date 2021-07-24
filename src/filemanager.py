@@ -99,7 +99,7 @@ class FileManager:
                     action = {
                         'file_name': file_name,
                         'action': 'update',
-                        'data': file_bin
+                        'data': list(file_bin)
                     }
                     update_db_file = True
                     modifies.append(action)
