@@ -5,7 +5,7 @@ This repo contains sources for a basic real time file sychronizer client.
 
 It periodically scans for modifies in files_sync folder and syncs the files in it with remote clients.
 It is fully cross-compatible because it does not use any 3rd party libraries nor system-specific calls nor external softwares.
-It runs in combination with server-sync
+It runs in combination with file-sync-server
 
 just a quick reminder on how to run the softwares:
 
