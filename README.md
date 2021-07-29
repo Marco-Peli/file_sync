@@ -16,5 +16,5 @@ just a quick reminder on how to run the softwares:
 
 Limitations:
 
-1) it can sync small files (tested up to 210kb) because it uses websockets with no ustomization
+1) it can sync small files (tested up to 210kb) because it uses websockets with no customization
 2) it keeps folder sync as soon as both client are connected to the server at the same time
